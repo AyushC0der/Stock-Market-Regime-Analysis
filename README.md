@@ -4,17 +4,9 @@ A stock-market ML project that's built up *syllabus unit by syllabus unit* —
 every concept you're taught gets implemented against real market data
 (AAPL, MSFT, GOOGL, AMZN, NVDA), not toy textbook numbers, so you can see
 what each idea actually looks like when the data is messy and real.
+##
+Unit 1 and 2 Is Covered
 
-## Status
-
-- [x] Milestone 1 — Data pipeline (download, clean, features, targets, split)
-- [x] Milestone 2 — Unit 1: intro to ML, polynomial curve fitting, probability theory
-- [x] Milestone 3 & 4 — **Unit 2: linear models for regression & classification** ← you are here
-
-Both syllabus units (Unit 1 and Unit 2, in full) are now implemented. See
-below for how to run everything and what to expect.
-
----
 
 ## 1. Setup
 
