@@ -8,9 +8,11 @@ what each idea actually looks like when the data is messy and real.
 ## Status
 
 - [x] Milestone 1 — Data pipeline (download, clean, features, targets, split)
-- [x] Milestone 2 — **Unit 1: intro to ML, polynomial curve fitting, probability theory** ← you are here
-- [ ] Milestone 3 — Unit 2: linear models for regression (MLE, ridge, Bayesian linear regression)
-- [ ] Milestone 4 — Unit 2: linear models for classification (discriminant functions, logistic regression, kernels, SVMs)
+- [x] Milestone 2 — Unit 1: intro to ML, polynomial curve fitting, probability theory
+- [x] Milestone 3 & 4 — **Unit 2: linear models for regression & classification** ← you are here
+
+Both syllabus units (Unit 1 and Unit 2, in full) are now implemented. See
+below for how to run everything and what to expect.
 
 ---
 
@@ -18,7 +20,16 @@ what each idea actually looks like when the data is messy and real.
 
 ```bash
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+```
+Activate it — **this step trips people up more than anything else in this
+repo, see the gotcha below**:
+```bash
+source venv/bin/activate        # Mac/Linux
+venv\Scripts\Activate.ps1        # Windows PowerShell
+venv\Scripts\activate.bat        # Windows cmd.exe
+```
+Then install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
@@ -34,7 +45,6 @@ This will:
 3. Engineer features + targets into `data/processed/<TICKER>_features.csv`.
 
 You can also run each step individually:
-
 ```bash
 python src/data/download.py
 python src/data/clean.py
@@ -53,47 +63,101 @@ python src/features/engineer.py
 ```bash
 python run_unit1.py
 ```
+Four short "labs" mapped to Unit 1 of the syllabus, printing worked numeric
+examples and saving plots under `results/unit1/`. Takes under a minute.
 
-This runs four short "labs," each one mapped to a chunk of your Unit 1
-syllabus, printing worked numeric examples to the console and saving
-plots under `results/unit1/`. It takes under a minute.
+## 4. Run Unit 2 (Milestones 3 & 4)
+
+```bash
+python run_unit2.py
+```
+Eight short "labs" — four on regression, four on classification — mapped to
+Unit 2 of the syllabus, printing worked numeric examples and saving plots
+under `results/unit2/`. Takes 1-2 minutes (the SVM/kernel step is the slow
+part).
 
 ---
 
-## What Unit 1 actually covers, and where to find it
+## What Unit 1 covers, and where to find it
 
 | Syllabus topic | File | What it does |
 |---|---|---|
 | What is ML, why; supervised learning; polynomial curve fitting | [`src/unit1/polynomial_curve_fitting.py`](src/unit1/polynomial_curve_fitting.py) | Fits polynomials of increasing degree to (a) the classic textbook `sin(2πx) + noise` example and (b) a real 30-day AAPL price window. Shows training error falling monotonically while held-out error forms a U — the precise, non-hand-wavy definition of **underfitting vs. overfitting**. |
-| Discrete random variables; fundamental rules (sum/product); Bayes' rule; independence & conditional independence | [`src/unit1/discrete_probability.py`](src/unit1/discrete_probability.py) | Treats `Target_Direction` (up/down) as a Bernoulli RV and an RSI-based regime (Oversold/Neutral/Overbought) as a second discrete RV. Builds the joint distribution, verifies the **sum rule** and **product rule** numerically, applies **Bayes' rule** by hand and checks it against direct counting, then runs a chi-square **independence test** — first pooled, then *stratified by volatility regime* to show how **conditional independence** can differ from unconditional independence. |
-| Continuous random variables; probability densities; quantiles; mean & variance; expectation | [`src/unit1/continuous_probability.py`](src/unit1/continuous_probability.py) | Treats AAPL's daily return as a continuous RV. Computes mean/variance/skew/kurtosis, fits a **Normal** and a **Student-t density** via maximum likelihood (and shows the t-distribution wins — real returns have fat tails), reads off **quantiles** (which is literally what "Value at Risk" is), evaluates a density as an *area* (`P(a ≤ X ≤ b)` via CDF difference, not a point probability), and computes **expectation** two independent ways (sample mean vs. numerically integrating `x·f(x)`) to show they agree. |
-| Expectation and covariance (multivariate) | [`src/unit1/covariance_expectation.py`](src/unit1/covariance_expectation.py) | Builds the 5×5 **covariance/correlation matrix** across all tickers' daily returns, checks it's symmetric and positive semi-definite, then computes an equal-weight portfolio's expected return and variance two ways — the closed-form identities `E[P] = w·E[R]` and `Var[P] = wᵀ Cov(R) w`, versus just measuring the realized portfolio series directly — to show diversification isn't a vibe, it falls straight out of the covariance-matrix algebra. |
+| Discrete random variables; fundamental rules (sum/product); Bayes' rule; independence & conditional independence | [`src/unit1/discrete_probability.py`](src/unit1/discrete_probability.py) | Treats `Target_Direction` (up/down) as a Bernoulli RV and an RSI-based regime (Oversold/Neutral/Overbought) as a second discrete RV. Builds the joint distribution, verifies the **sum rule** and **product rule** numerically, applies **Bayes' rule** by hand, then runs a chi-square **independence test** — first pooled, then *stratified by volatility regime* to show **conditional independence** can differ from unconditional independence. |
+| Continuous random variables; probability densities; quantiles; mean & variance; expectation | [`src/unit1/continuous_probability.py`](src/unit1/continuous_probability.py) | Treats AAPL's daily return as a continuous RV. Computes mean/variance/skew/kurtosis, fits a **Normal** and a **Student-t density** via maximum likelihood (t wins — real returns have fat tails), reads off **quantiles** (literally what "Value at Risk" is), evaluates a density as an *area*, and computes **expectation** two ways to confirm they agree. |
+| Expectation and covariance (multivariate) | [`src/unit1/covariance_expectation.py`](src/unit1/covariance_expectation.py) | Builds the 5×5 **covariance/correlation matrix** across tickers, checks it's symmetric and positive semi-definite, then computes portfolio expectation/variance two ways to show diversification falls straight out of the covariance-matrix algebra. |
 
-`run_unit1.py` just calls all four of the above in order, with section headers, and tells you where the output plots landed.
+`run_unit1.py` calls all four in order.
+
+## What Unit 2 covers, and where to find it
+
+Every Unit 2 module shares one loader (`src/unit2/data_utils.py`): it pools
+all 5 tickers, turns absolute-price moving averages into scale-free ratios
+(`Price_to_MA5` etc. — otherwise AAPL's price scale would dominate a pooled
+model), splits chronologically via `src/data/split.py`, and **fits any
+scaler strictly on the training split only** — the exact leakage pitfall
+called out in the original project review. Regression predicts
+`Target_Return`; classification predicts `Target_Direction`.
+
+### Regression (predicting next-day return)
+
+| Syllabus topic | File | What it does |
+|---|---|---|
+| Maximum likelihood estimation, least squares | [`least_squares.py`](src/unit2/regression/least_squares.py) | Solves the normal equations by hand, proves the result is numerically identical to sklearn's `LinearRegression` — the concrete demonstration that **MLE under Gaussian noise = least squares**, not just "similar to." |
+| Robust linear regression | [`robust_regression.py`](src/unit2/regression/robust_regression.py) | Compares OLS vs. Huber-loss regression, then deliberately injects synthetic outliers into the training targets and tracks how far each model's coefficients drift — OLS drifts ~5x more than Huber. |
+| Ridge regression | [`ridge_regression.py`](src/unit2/regression/ridge_regression.py) | Closed-form ridge solution verified against sklearn, a full shrinkage path (every coefficient sliding to 0 as λ grows), and λ selected properly using the **validation** split, never touching test. |
+| Bayesian linear regression | [`bayesian_linear_regression.py`](src/unit2/regression/bayesian_linear_regression.py) | Closed-form Gaussian posterior over the weights. A toy demo shows predictive uncertainty visibly shrinking as N grows (ties back to Unit 1's polynomial curve fitting); on real data, proves the **posterior mean equals the ridge solution** for λ=α/β, and checks predictive-interval calibration. |
+
+### Classification (predicting next-day up/down)
+
+| Syllabus topic | File | What it does |
+|---|---|---|
+| Discriminant function; probabilistic generative models | [`generative_models.py`](src/unit2/classification/generative_models.py) | Fits class-conditional Gaussians with **shared covariance**, derives the linear discriminant `w, w0` by hand, and confirms it's numerically identical (cosine similarity = 1.0) to sklearn's `LinearDiscriminantAnalysis`. Plots the resulting linear decision boundary. |
+| Probabilistic discriminative models | [`discriminative_models.py`](src/unit2/classification/discriminative_models.py) | Implements logistic regression MLE fitting via hand-written **IRLS** (Newton-Raphson), verified against sklearn's `LogisticRegression`. Directly compares this discriminative model against the previous generative one on the identical test set (accuracy, precision, recall, ROC-AUC). |
+| Laplace approximation; Bayesian logistic regression | [`laplace_bayesian_logistic.py`](src/unit2/classification/laplace_bayesian_logistic.py) | Approximates the posterior over logistic-regression weights as a Gaussian centered at the MAP estimate (Hessian = posterior precision), then applies Bishop's probit correction so **predictive probabilities are pulled toward 0.5 in proportion to how uncertain the model is** — a toy 2D demo makes this dramatically visible. |
+| Kernel functions; using kernels in GLMs; kernel trick; SVMs | [`kernels_svm.py`](src/unit2/classification/kernels_svm.py) | Builds an explicit polynomial feature map and proves it gives numerically identical inner products to the polynomial *kernel function* (the kernel trick, made concrete) — then uses a kernel inside a GLM (kernel ridge regression) and compares linear vs. RBF-kernel SVMs, including a 2D decision-boundary plot. |
+
+`run_unit2.py` calls all eight in order.
 
 ---
 
 ## What to look for in the output (so you know it "worked")
 
-- **Polynomial demo:** the `M=9` fit on 10 synthetic points should look like a wild, wiggly curve that hits every dot exactly (train RMSE ≈ 0) but flies off wildly between points — that's the overfitting picture. The train-vs-test error plot should show test error going down then back up, with a clear best degree in between (usually 3–5 on the synthetic data). On the real AAPL window, expect the *best* degree to be low (1–3) — that's a **good** result, not a disappointing one; it means the held-out check is doing its job.
-- **Discrete probability:** every "check" line should print a difference of `0.000000` — sum rule, product rule, and Bayes' rule are exact identities, so if they don't match to floating-point precision, something is broken (not "close enough," genuinely broken).
-- **Continuous probability:** Student-t should have a higher log-likelihood than Normal (fatter tails fit financial returns better — this is one of the most consistent stylized facts in all of finance). Excess kurtosis should be well above 0.
-- **Covariance:** the printed "smallest eigenvalue" must be ≥ 0 (or a tiny negative number like `-1e-18`, which is just floating-point noise) — a real covariance matrix can never have a negative eigenvalue. Correlations between the 5 tickers should all be positive (they're all large-cap tech, so they tend to move together) but well below 1.0.
+**Unit 1:**
+- **Polynomial demo:** `M=9` on 10 synthetic points should look like a wild, wiggly curve hitting every dot exactly (train RMSE ≈ 0) — that's overfitting. Train-vs-test error should form a U with a clear best degree in between. On real AAPL data, a *low* best degree (1-3) is the expected, healthy result.
+- **Discrete probability:** every "check" line should print a difference of `0.000000` — these are exact identities.
+- **Continuous probability:** Student-t should beat Normal on log-likelihood; excess kurtosis should be clearly above 0.
+- **Covariance:** smallest eigenvalue must be ≥ 0 (or ~`-1e-18`, floating-point noise).
+
+**Unit 2:**
+- **Least squares:** the MLE/normal-equations/sklearn triple-check should print a difference of essentially `0`. Test R² near 0 (or slightly negative) is the *correct*, honest outcome for next-day returns.
+- **Robust regression:** OLS coefficient drift should grow much faster than Huber's as synthetic outlier contamination increases.
+- **Ridge:** the shrinkage-path plot should show every line sliding toward 0 as λ (x-axis) grows. Don't be surprised if the validation search picks the *largest* λ tried — see the gotcha below on what that means.
+- **Bayesian linear regression:** the toy plot's uncertainty band should visibly narrow from N=2 to N=25. On real data, the posterior-mean-vs-ridge check should print a difference of essentially `0`, and roughly ~95% of test targets should fall inside the 95% predictive interval (a little under 95% is expected — real returns are fatter-tailed than the Gaussian likelihood assumes).
+- **Generative model:** cosine similarity vs. sklearn's LDA should print `1.000000` (or `-1.000000`, same boundary).
+- **Discriminative model:** hand-written IRLS should land close to sklearn's unregularized logistic regression. Accuracy in the low-to-mid 50s on test is expected and correct, not a bug.
+- **Laplace/Bayesian logistic:** the toy 2D contour plot is the one to actually look at — the "Bayesian" panel should look visibly softer/less saturated than the "plug-in" panel, especially away from the training clusters. On the real data (thousands of rows, only 12 features), the correction is nearly invisible — that's expected; see the gotcha below.
+- **Kernels/SVM:** the polynomial-feature-map-vs-kernel-function check should print a difference of essentially `0`. The RBF-kernel SVM boundary plot may look like it's carving out small "islands" — see the gotcha below on why that's a lesson, not a bug.
 
 ---
 
 ## Known gotchas & things to watch out for
 
-- **Windows console + special characters.** `print()`-ing `π`, `·`, em-dashes, or `⟂` will crash with a `UnicodeEncodeError` on a default Windows terminal (cp1252 codepage), even though the same characters render fine in a Jupyter notebook or on Mac/Linux. Every string printed to the console in this repo is kept plain-ASCII on purpose (`pi` instead of `π`, `-` instead of `—`, etc.) for exactly this reason. If you add your own `print()` statements with fancy Unicode, either keep them ASCII or run `chcp 65001` first to switch your terminal to UTF-8.
-- **The Adjusted-Close bug (already fixed, but know why).** An earlier version of `engineer.py` computed returns off the raw `Close` column instead of `Adj Close`. Four of these five tickers had a stock split during 2015–2025 (AAPL 4:1 in 2020, NVDA 4:1 in 2021 + 10:1 in 2024, GOOGL & AMZN both 20:1 in 2022), and a raw, unadjusted close price shows a split as an enormous fake single-day price crash. That fake crash would land directly in `Target_Return`/`Target_Direction` and quietly poison the label column. This is now fixed — `add_features()` in `src/features/engineer.py` explicitly uses `Adj Close`. **If you ever add a new feature that touches price, make sure it uses `Adj Close`, not `Close`.**
-- **Survivorship bias.** The five tickers (AAPL/MSFT/GOOGL/AMZN/NVDA) are exactly the 2015–2025 mega-cap tech "winners." Any claim like "the market tends to do X" based on this data is really a claim about five specific large, successful companies, not "the market." This isn't something to fix — it's something to say out loud in any write-up or presentation.
-- **yfinance can be rate-limited or flaky.** If a ticker download fails, just rerun `python main.py` — `download.py` retries automatically, but Yahoo occasionally needs a minute to stop complaining.
-- **RSI can divide by zero** when there's no losing day in the lookback window. This is handled (0 replaced with NaN before dividing), so you'll see occasional `NaN` RSI on flat/all-up stretches — that's correct behavior, not a bug.
-- **~50 rows at the start of each ticker's history get dropped** because `MA_50` needs 50 prior days to exist before it's defined. Expected, not data loss.
-- **Chi-square p-values are not proof of independence.** A p-value above 0.05 in `discrete_probability.py` means "we didn't find strong evidence *against* independence," which is a much weaker (and more honest) claim than "these are independent." Don't over-claim this in a report.
-- **Sample sizes get small once you stratify.** The conditional-independence check splits the data by volatility regime, which roughly halves the sample each time. If you stratify by a third or fourth variable on top of that, your chi-square test can lose statistical power fast — watch the printed `n=` before trusting a "fail to reject" result.
-- **Set realistic accuracy expectations for later units.** Predicting next-day stock direction from OHLCV-derived features is close to the textbook definition of a hard problem (see: efficient market hypothesis). When Unit 2's classifiers land, an honest 52–56% test accuracy is a *correct* result, not a failure — resist the urge to keep tuning until you hit 90%, because that almost always means leakage snuck back in somewhere.
-- **Run things from the repo root.** All scripts use relative paths like `data/processed/...`, so `python run_unit1.py` (or `python main.py`) needs to be run from this folder, not from `src/` or `notebooks/`.
+- **"ModuleNotFoundError: No module named 'X'" means the venv isn't active.** By far the most common error you'll hit: running `python main.py` (or any script here) with your system Python instead of the project's `venv` will fail with a missing-module error even though `pip install -r requirements.txt` succeeded earlier — it succeeded *inside the venv*, which isn't the interpreter that ran. Fix: activate the venv every new terminal session (`venv\Scripts\Activate.ps1` on Windows PowerShell) before running anything, or just call the venv's Python directly: `.\venv\Scripts\python.exe main.py`. If PowerShell refuses to run the activation script citing execution policy, use `powershell -ExecutionPolicy Bypass -File .\venv\Scripts\Activate.ps1`, or the direct-call form above (no activation needed at all).
+- **Windows console + special characters.** `print()`-ing `π`, `·`, em-dashes, or `⟂` crashes with `UnicodeEncodeError` on a default Windows terminal (cp1252 codepage). Every string printed anywhere in this repo is kept plain-ASCII on purpose. If you add your own prints with fancy Unicode, either keep them ASCII or run `chcp 65001` first.
+- **The Adjusted-Close bug (already fixed, but know why).** An earlier version computed returns off raw `Close` instead of `Adj Close`. Four of five tickers split during 2015-2025 (AAPL 4:1 2020, NVDA 4:1 2021 + 10:1 2024, GOOGL/AMZN 20:1 2022) — unadjusted close shows a split as a fake single-day price crash, which would land directly in the target column. Fixed in `src/features/engineer.py`. **Any new price-based feature must use `Adj Close`.**
+- **Survivorship bias.** The five tickers are exactly the 2015-2025 mega-cap tech "winners." Any "the market tends to do X" claim from this data is really a claim about five specific successful companies. Say this out loud in any write-up.
+- **Scale-free features matter once you pool tickers (Unit 2).** `Price_to_MA5/20/50` and `Volume_to_MA` exist in `data_utils.py` specifically because AAPL's raw price and GOOGL's raw price live on totally different scales — a pooled model trained on raw `MA_50` would mostly learn "which ticker is this" instead of a real momentum signal.
+- **Ridge's validation search may pick the largest λ in the grid.** If `select_alpha_on_validation` prints a note that it hit the edge of `ALPHA_GRID`, that means the validation set prefers shrinking weights all the way toward "just predict the mean" — a real, honest signal that there's essentially no exploitable linear relationship, not a bug in the search.
+- **The Laplace correction can look negligible on real data.** With ~8,500 training rows and only 12 features, the posterior over the weights is already tight, so the plug-in and Bayesian probabilities barely differ. That's expected — the effect is far more visible in the toy 2D demo (only 40 points) in the same module, and would matter far more on any real project with fewer rows per parameter.
+- **The RBF-kernel SVM plot might show small "islands" of the minority class.** That's the flexible kernel latching onto a handful of noisy points rather than finding real structure — it's the SVM analogue of the Unit 1 degree-9 polynomial overfitting demo, not a sign the kernel was misconfigured.
+- **Kernel methods are subsampled to ~1,500 training rows** (`KERNEL_TRAIN_SAMPLE` in `kernels_svm.py`) purely for runtime — kernel matrices scale roughly O(n²)-O(n³). Test/val evaluation always uses the full split, so reported metrics are still honest; only the *fit* is on a subsample.
+- **yfinance can be rate-limited or flaky.** Just rerun `python main.py` — `download.py` retries automatically.
+- **RSI can divide by zero** on flat/all-up stretches; handled (produces `NaN`, not a crash) — expected behavior.
+- **~50 rows at the start of each ticker's history get dropped** (need 50 prior days for `MA_50`). Expected, not data loss.
+- **Chi-square p-values are not proof of independence** — a p-value above 0.05 means "no evidence found against independence," a weaker claim than "these are independent."
+- **Set realistic accuracy expectations everywhere in Unit 2.** Predicting next-day stock direction/return from OHLCV-derived features is close to the textbook definition of a hard problem (efficient market hypothesis). Accuracy in the low-to-mid 50s / R² near 0 is a *correct* result throughout this project, not a failure — resist tuning until you hit 90%, because that almost always means leakage crept back in.
+- **Run things from the repo root.** All scripts use relative paths like `data/processed/...`, so `python run_unit2.py` needs to run from this folder, not from `src/`.
 
 ---
 
@@ -101,7 +165,8 @@ plots under `results/unit1/`. It takes under a minute.
 
 ```
 main.py                     # Milestone 1: download -> clean -> engineer features
-run_unit1.py                 # Milestone 2: runs all four Unit 1 modules
+run_unit1.py                  # Milestone 2: runs all four Unit 1 modules
+run_unit2.py                  # Milestones 3-4: runs all eight Unit 2 modules
 src/
   data/
     download.py               # pulls raw OHLCV from yfinance
@@ -114,7 +179,18 @@ src/
     discrete_probability.py      # discrete RVs, sum/product rule, Bayes, independence
     continuous_probability.py    # continuous RVs, densities, quantiles, expectation
     covariance_expectation.py    # multivariate expectation & covariance, portfolio variance
-  classification/ probability/ regression/   # empty stubs, reserved for Unit 2 (Milestones 3-4)
+  unit2/
+    data_utils.py                # pooled loader, scale-free features, leakage-safe scaling/split
+    regression/
+      least_squares.py             # MLE == OLS via normal equations
+      robust_regression.py         # Huber vs OLS under outlier contamination
+      ridge_regression.py          # closed-form ridge, shrinkage path, validation-selected lambda
+      bayesian_linear_regression.py  # closed-form posterior, predictive uncertainty
+    classification/
+      generative_models.py         # shared-covariance Gaussian discriminant (LDA)
+      discriminative_models.py     # logistic regression via hand-written IRLS
+      laplace_bayesian_logistic.py # Laplace approximation, Bayesian predictive probabilities
+      kernels_svm.py                # kernel trick, kernel ridge regression, linear/RBF SVM
 data/
   raw/                          # one CSV per ticker, untouched once downloaded
   processed/                    # cleaned + feature-engineered CSVs
@@ -122,14 +198,17 @@ results/
   unit1/
     polynomial/                 # curve-fitting figures
     probability/                # density/covariance figures + a text summary
+  unit2/
+    regression/                  # OLS/ridge/robust/Bayesian regression figures
+    classification/              # generative/discriminative/Laplace/SVM figures
 ```
 
-## What's next (Unit 2)
+## What's next
 
-Once you're comfortable with everything above, Milestone 3 will build linear
-regression models on top of this same feature set: maximum likelihood /
-least squares, robust regression, ridge regression, and Bayesian linear
-regression — all predicting `Target_Return`. Milestone 4 will then build
-classifiers predicting `Target_Direction`: generative and discriminative
-probabilistic models, Laplace approximation, Bayesian logistic regression,
-kernel methods, and SVMs.
+Both syllabus units are now fully implemented end-to-end: data pipeline →
+probability foundations → linear regression models → linear classification
+models, all evaluated honestly on chronologically held-out real market
+data. From here, natural next steps (not currently planned as a milestone,
+just food for thought) would be walk-forward/expanding-window validation
+instead of a single fixed split, and extending the feature set or ticker
+universe to address the survivorship-bias limitation noted above.
