@@ -1,0 +1,2 @@
+See console output / re-run this module to regenerate these numbers.
+Rows analyzed: 12330 (pooled across all tickers)
